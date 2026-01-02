@@ -10,7 +10,7 @@ Cross-platform mobile client for CAAL voice assistant.
 
 ## Pre-built APK
 
-A pre-built Android APK is available in `mobile/releases/`. Download and install directly on your device.
+A pre-built Android APK is available on the [GitHub Releases](https://github.com/CoreWorxLab/CAAL/releases) page.
 
 ## Building from Source
 
