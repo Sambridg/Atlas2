@@ -89,8 +89,8 @@ services:
     environment:
       - LIVEKIT_URL=ws://livekit:7880
       # Point to mlx-audio (single service for STT + TTS)
-      - SPEACHES_URL=${MLX_AUDIO_URL:-http://host.docker.internal:8000}
-      - KOKORO_URL=${MLX_AUDIO_URL:-http://host.docker.internal:8000}
+      - SPEACHES_URL=${MLX_AUDIO_URL:-http://host.docker.internal:8001}
+      - KOKORO_URL=${MLX_AUDIO_URL:-http://host.docker.internal:8001}
       # MLX models - override in .env if needed
       - WHISPER_MODEL=${WHISPER_MODEL:-mlx-community/whisper-medium-mlx}
       - TTS_MODEL=${TTS_MODEL:-prince-canuma/Kokoro-82M}
