@@ -42,7 +42,7 @@ _script_dir = os.path.dirname(os.path.abspath(__file__))
 load_dotenv(os.path.join(_script_dir, ".env"))
 
 from livekit import agents
-from livekit.agents import AgentSession, Agent, RoomInputOptions, mcp
+from livekit.agents import AgentSession, Agent, mcp
 from livekit.plugins import silero, openai
 
 from caal import OllamaLLM
@@ -406,7 +406,6 @@ async def entrypoint(ctx: agents.JobContext) -> None:
     await session.start(
         room=ctx.room,
         agent=assistant,
-        room_input_options=RoomInputOptions(),
     )
 
     # Register session for webhook access

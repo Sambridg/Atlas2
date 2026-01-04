@@ -108,11 +108,12 @@ function createParticipantToken(
   };
   at.addGrant(grant);
 
-  if (agentName) {
-    at.roomConfig = new RoomConfiguration({
-      agents: [{ agentName }],
-    });
-  }
+  // Always set room config with fast departure timeout for quick reconnect
+  // departureTimeout: seconds to keep room open after last participant leaves (default 20s)
+  at.roomConfig = new RoomConfiguration({
+    departureTimeout: 1, // Close room 1 second after disconnect for fast reconnect
+    ...(agentName && { agents: [{ agentName }] }),
+  });
 
   return at.toJwt();
 }
