@@ -104,3 +104,6 @@ mobile/build/
 mobile/.packages
 mobile/.pub-cache/
 mobile/.pub/
+
+backup/
+
