@@ -44,6 +44,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 from . import settings as settings_module
+from .memory_store import MemoryStore
+from .trace_store import TraceStore
+from .audio_store import AudioStore
 
 logger = logging.getLogger(__name__)
 
@@ -111,6 +114,35 @@ class HealthResponse(BaseModel):
 
     status: str
     active_sessions: list[str]
+
+
+class MemoryContextResponse(BaseModel):
+    bucket_id: str
+    register_summary: str
+    short_context: str
+    long_context: str | None
+    items: list
+    last_updated: float | None
+
+
+class TraceExportResponse(BaseModel):
+    path: str
+
+
+class TraceRoundResponse(BaseModel):
+    round: dict
+    events: list[dict]
+
+
+class AudioMetadataResponse(BaseModel):
+    audio_id: str
+    path: str | None = None
+    sha256: str | None = None
+    codec: str | None = None
+    sample_rate: int | None = None
+    duration_ms: int | None = None
+    retention_ttl: float | None = None
+    pinned: bool = False
 
 
 @app.post("/announce", response_model=AnnounceResponse)
@@ -596,3 +628,39 @@ async def get_wake_word_models() -> WakeWordModelsResponse:
                 models.append(f"models/{f.name}")
 
     return WakeWordModelsResponse(models=sorted(models))
+# ---------------------------------------------------------------------------
+# Memory/Trace/Audio inspection APIs (read-only)
+# ---------------------------------------------------------------------------
+
+
+@app.get("/memory/context/{bucket_id}", response_model=MemoryContextResponse)
+async def get_memory_context(bucket_id: str) -> MemoryContextResponse:
+    store = MemoryStore()
+    pkg = store.get_context_package(bucket_id)
+    return MemoryContextResponse(**pkg)
+
+
+@app.get("/trace/round/{round_id}", response_model=TraceRoundResponse)
+async def get_trace_round(round_id: str) -> TraceRoundResponse:
+    store = TraceStore()
+    header = store.fetch_round(round_id)
+    if not header:
+        raise HTTPException(status_code=404, detail="round not found")
+    events = store.fetch_events(round_id)
+    return TraceRoundResponse(round=header, events=events)
+
+
+@app.get("/trace/export", response_model=TraceExportResponse)
+async def export_traces() -> TraceExportResponse:
+    store = TraceStore()
+    out_path = store.export_jsonl("data/traces_export.jsonl")
+    return TraceExportResponse(path=str(out_path))
+
+
+@app.get("/audio/{audio_id}", response_model=AudioMetadataResponse)
+async def get_audio_metadata(audio_id: str) -> AudioMetadataResponse:
+    store = AudioStore()
+    meta = store.get_artifact(audio_id)
+    if not meta:
+        raise HTTPException(status_code=404, detail="audio not found")
+    return AudioMetadataResponse(**meta)

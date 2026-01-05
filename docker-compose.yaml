@@ -37,7 +37,7 @@ services:
       - "7881:7881/udp"   # UDP for WebRTC
       - "5349:5349"       # TURN/TLS (only used in Tailscale mode)
       - "30000-30100:30000-30100/udp"  # TURN relay ports
-      - "50000-50100:50000-50100/udp"  # WebRTC media ports
+      - "55000-55100:55000-55100/udp"  # WebRTC media ports
     volumes:
       - ./livekit.yaml:/etc/livekit-lan.yaml:ro
       - ./livekit-tailscale.yaml.template:/etc/livekit.yaml.template:ro
@@ -88,6 +88,8 @@ services:
       speaches:
         condition: service_healthy
       kokoro:
+        condition: service_healthy
+      ollama:
         condition: service_healthy
     restart: unless-stopped
 
@@ -146,6 +148,29 @@ services:
       timeout: 5s
       retries: 3
       start_period: 60s
+
+  # =======================================================================
+  # Ollama - Local LLM server
+  # =======================================================================
+  ollama:
+    image: ollama/ollama:latest
+    container_name: caal-ollama
+    ports:
+      - "${OLLAMA_PORT:-11434}:11434"
+    environment:
+      - OLLAMA_HOST=0.0.0.0
+      - OLLAMA_KEEP_ALIVE=24h
+    volumes:
+      - ollama-data:/root/.ollama
+    networks:
+      - caal-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11434/api/tags"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
   # ===========================================================================
   # Frontend - Next.js Web Interface
@@ -222,3 +247,5 @@ volumes:
     name: caal-speaches-cache
   kokoro-cache:
     name: caal-kokoro-cache
+  ollama-data:
+    name: caal-ollama-data

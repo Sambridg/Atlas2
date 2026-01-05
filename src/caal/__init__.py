@@ -28,9 +28,16 @@ License: MIT
 __version__ = "0.1.0"
 __author__ = "CoreWorxLab"
 
-from .llm import OllamaLLM
+try:
+    from .llm import OllamaLLM
+except Exception:
+    # Optional dependency: allow core modules (memory/trace) without LLM deps
+    OllamaLLM = None
+
+from .local_llm import use_local_llm
 
 __all__ = [
     "OllamaLLM",
+    "use_local_llm",
     "__version__",
 ]
